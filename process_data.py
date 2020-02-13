@@ -25,7 +25,6 @@ xdf = df.merge(xorbs,left_on="sb9_id",right_on='SysNum')
 
 
 # Loop over tiles and find unique TICS. This requires connection to silo2 server
-print("Looping over tiles to find unique TICs. Server activity can take a while...")
 files = []
 for sector in list(range(1, 20)):
     files.extend(
@@ -113,7 +112,7 @@ def produce_fts(ticnum):
         plt.axvline(1.0/p,color='r', ls='--', lw=0.8)
     plt.xlim(0,fmax)
     plt.ylim(bottom=0)
-    plt.savefig(f"{github}/data/TESS_plots/FTs/{ticnum}.png",bbox_inches='tight')
+    plt.savefig(f"data/TESS_plots/FTs/{ticnum}.png",bbox_inches='tight')
     plt.clf()
     plt.close('all')
 
@@ -128,14 +127,13 @@ def produce_scaled_fts(ticnum):
     plt.axvline(1.0/p,color='r', ls='--', lw=0.8)
     plt.xlim(0,fmax)
     plt.ylim(bottom=0)
-    plt.savefig(f"{github}/data/TESS_plots/scaled_FTs/{ticnum}.png",bbox_inches='tight')
+    plt.savefig(f"data/TESS_plots/scaled_FTs/{ticnum}.png",bbox_inches='tight')
     plt.clf()
     plt.close('all')
 
 # (Re-)Produce the plots if the variable below is set to True
 produce_plots = False
 if produce_plots:
-  print("Producing plots...")
   for t in tqdm(tf["TIC"].values):
       try:
           produce_lks(t)
