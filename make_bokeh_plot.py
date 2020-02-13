@@ -20,6 +20,8 @@ source = ColumnDataSource(
             scaled_fts = tf['scaled_fts'].values,
             folded_lks = tf['folded_lks'].values,
             TIC = tf["TIC"].values,
+            Sys = tf["SysNum"].values,
+            Orb = tf["OrbNum"].values,
             color = tf["numRVs"].values
         )
     )
@@ -39,7 +41,7 @@ hover = HoverTool(# height="200" alt="@imgs" width="500"
                 ></img>
             </div>
             <div>
-                <span style="font-size: 17px; font-weight: bold;">TIC @TIC</span>
+                <span style="font-size: 17px; font-weight: bold;">TIC @TIC, SB9 system @Sys orbit @Orb</span>
             </div>
         </div>
         """
