@@ -74,6 +74,6 @@ p.title.text_font_size = "15pt"
 p.xaxis.axis_label_text_font_style = 'normal'
 p.yaxis.axis_label_text_font_style = 'normal'
 p.toolbar.active_scroll=wheel
-color_bar = ColorBar(color_mapper=mapper["transform"], width=8, location=(0, 0))
+color_bar = ColorBar(color_mapper=mapper["transform"], width=8, location=(0, 0), major_label_overrides={'20': '>20'}))
 p.add_layout(color_bar, "right")
 show(p)
