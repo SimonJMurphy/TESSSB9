@@ -27,7 +27,7 @@ source = ColumnDataSource(
     )
 hover = HoverTool(# height="200" alt="@imgs" width="500"
         tooltips="""
-        <div>
+        <div style="font-family: verdana; width : 430px; position: fixed; left: 100px; top: 50px; border: 2px solid @color; background: #f5f5f5; padding: 10px">
             <div>
                 <img
                     src="@lks" alt="lks" width="420"
