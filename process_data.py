@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm_notebook as tqdm
 
-github = "https://raw.githubusercontent.com/SimonJMurphy/TESSSB9/master"
+#github = "https://raw.githubusercontent.com/SimonJMurphy/TESSSB9/master"
+github = "."
 
 # Read the SB9 data tables
 maindata = pd.read_csv(f"{github}/data/SB9public/Main.dta", names=["SysNum","J1900","J2000","component","mag1","filter1","mag2","filter2","spt1","spt2"], delimiter='|')
@@ -89,21 +90,24 @@ def get_lightcurve(unique_tic):
     return lc
 
 def produce_lks(ticnum):
+    print(f"making data/TESS_plots/LKs/{ticnum}.png")
     lc = get_lightcurve(ticnum)
     fig = lc.plot()
-    plt.savefig(f"{github}/data/TESS_plots/LKs/{ticnum}.png",bbox_inches='tight')
+    plt.savefig(f"data/TESS_plots/LKs/{ticnum}.png",bbox_inches='tight')
     plt.clf()
     plt.close('all')
 
 def produce_folded_lks(ticnum):
+    print(f"making data/TESS_plots/folded_LKs/{ticnum}.png")
     lc = get_lightcurve(ticnum)
     p = tf.query(f"TIC=={ticnum}")["p"].values[0]
     fig = lc.fold(period=p).plot()
-    plt.savefig(f"{github}/data/TESS_plots/folded_LKs/{ticnum}.png",bbox_inches='tight')
+    plt.savefig(f"data/TESS_plots/folded_LKs/{ticnum}.png",bbox_inches='tight')
     plt.clf()
     plt.close('all')
 
 def produce_fts(ticnum):
+    print(f"making data/TESS_plots/FTs/{ticnum}.png")
     p = tf.query(f"TIC=={ticnum}")["p"].values[0]
     fmax = 15
     lc = get_lightcurve(ticnum)
@@ -117,6 +121,7 @@ def produce_fts(ticnum):
     plt.close('all')
 
 def produce_scaled_fts(ticnum):
+    print(f"making data/TESS_plots/scaled_FTs/{ticnum}.png")
     p = tf.query(f"TIC=={ticnum}")["p"].values[0]
     if p < 10:
         fmax = 8/p
