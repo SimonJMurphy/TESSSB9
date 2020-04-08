@@ -25,16 +25,19 @@ xorbs = orbits.loc[orbits.notnull().sum(1).groupby(orbits.SysNum).idxmax()]
 xdf = df.merge(xorbs,left_on="sb9_id",right_on='SysNum')
 
 
-# Loop over tiles and find unique TICS. This requires connection to silo2 server
+# Loop over files and find unique TICS. This requires connection to silo2 server
+print("Gathering information on TESS lightcurves from the SILO server...")
 files = []
 for sector in list(range(1, 20)):
     files.extend(
         glob.glob("/Volumes/silo2/dhey3294/TESS/sector_" + str(sector) + "/tess*.fits")
     )
+
 tics = [a.split("_")[1].split("/")[-1].split("-")[2].lstrip("0") for a in files]
 
 # rescue with the online files if silo2 is out of action
 if len(tics) < 1:
+    print("There may be an issue with the SILO server. Rescuing using local files...")
     files.extend(
             glob.glob(f"{github}/data/TESS_plots/LKs/*png")
         )
@@ -42,6 +45,8 @@ if len(tics) < 1:
 
 unique_tics = np.unique(tics)
 
+
+print("Cross-matching and producing dataframe...")
 
 # keep only the systems we have a TESS LK of.
 tf = xdf[xdf["TIC"].isin(unique_tics)]
@@ -75,7 +80,6 @@ tf = tf.merge(tic_pg,left_on="TIC",right_on='ID')
 
 # write this df to csv
 tf.to_csv("plot_df.csv",index=False)
-
 
 ## Various plotting functions
 
