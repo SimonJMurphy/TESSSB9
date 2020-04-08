@@ -2,8 +2,10 @@ import glob
 import lightkurve as lk
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pandas as pd
-from tqdm import tqdm_notebook as tqdm
+from shutil import copyfile
+from tqdm import tqdm
 
 #github = "https://raw.githubusercontent.com/SimonJMurphy/TESSSB9/master"
 github = "."
@@ -93,28 +95,42 @@ def get_lightcurve(unique_tic):
     lc = lc.remove_nans()
     return lc
 
-def produce_lks(ticnum):
+def save_fits_files_locally(files):
+    print("saving fits files locally...")
+    destination = "data/TESS_fits/"
+    
+    for f in tqdm(files):
+        this_tic = f.split("_")[1].split("/")[-1].split("-")[2].lstrip("0")
+        if this_tic in tf["TIC"].values:
+            fits = f.split("/")[-2]+"/"+f.split("/")[-1]
+            os.makedirs(os.path.dirname(destination+fits), exist_ok=True)
+            copyfile(f,destination+fits)
+
+def save_lc(ticnum,lc):
+    print(f"saving lightcurve at data/TESS_ascii/{ticnum}_lightcurve.csv")
+    magnitude = -2.5 * np.log10(lc.flux)
+    magnitude = magnitude - np.average(magnitude)
+    np.savetxt(f"data/TESS_lcs/{ticnum}_lightcurve.csv",np.array([lc.time,magnitude]).T, delimiter=" ")
+
+def produce_lks(ticnum,lc):
     print(f"making data/TESS_plots/LKs/{ticnum}.png")
-    lc = get_lightcurve(ticnum)
     fig = lc.plot()
     plt.savefig(f"data/TESS_plots/LKs/{ticnum}.png",bbox_inches='tight')
     plt.clf()
     plt.close('all')
 
-def produce_folded_lks(ticnum):
+def produce_folded_lks(ticnum,lc):
     print(f"making data/TESS_plots/folded_LKs/{ticnum}.png")
-    lc = get_lightcurve(ticnum)
     p = tf.query(f"TIC=={ticnum}")["p"].values[0]
     fig = lc.fold(period=p).plot()
     plt.savefig(f"data/TESS_plots/folded_LKs/{ticnum}.png",bbox_inches='tight')
     plt.clf()
     plt.close('all')
 
-def produce_fts(ticnum):
+def produce_fts(ticnum,lc):
     print(f"making data/TESS_plots/FTs/{ticnum}.png")
     p = tf.query(f"TIC=={ticnum}")["p"].values[0]
     fmax = 15
-    lc = get_lightcurve(ticnum)
     fig = lc.to_periodogram(maximum_frequency=fmax).plot()
     if 1/p < fmax:
         plt.axvline(1.0/p,color='r', ls='--', lw=0.8)
@@ -124,14 +140,13 @@ def produce_fts(ticnum):
     plt.clf()
     plt.close('all')
 
-def produce_scaled_fts(ticnum):
+def produce_scaled_fts(ticnum,lc):
     print(f"making data/TESS_plots/scaled_FTs/{ticnum}.png")
     p = tf.query(f"TIC=={ticnum}")["p"].values[0]
     if p < 10:
         fmax = 8/p
     else:
         fmax = 10
-    lc = get_lightcurve(ticnum)
     fig = lc.to_periodogram(maximum_frequency=fmax).plot()
     plt.axvline(1.0/p,color='r', ls='--', lw=0.8)
     plt.xlim(0,fmax)
@@ -140,24 +155,33 @@ def produce_scaled_fts(ticnum):
     plt.clf()
     plt.close('all')
 
-# (Re-)Produce the plots if the variable below is set to True
-produce_plots = False
+# (Re-)Produce the plots and save local files if the variable below is set to True
+produce_plots = True
 if produce_plots:
-  for t in tqdm(tf["TIC"].values):
-      try:
-          produce_lks(t)
-      except:
-          print(f"TIC{t} lk plot failed.")
-      try:
-          produce_fts(t)
-      except:
-          print(f"TIC{t} ft plot failed.")
-      try:
-          produce_scaled_fts(t)
-      except:
-          print(f"TIC{t} scaled ft plot failed.")
-      try:
-          produce_folded_lks(t)
-      except:
-          print(f"TIC{t} folded lk plot failed.")
+    save_fits_files_locally(files)
+    for t in tqdm(tf["TIC"].values):
+        try:
+            lc = get_lightcurve(t)
+        except:
+            print(f"Could not retrieve lightcurve for TIC{t}.")
+        try:
+            save_lc(t,lc)
+        except:
+            print(f"TIC{t} lc save failed.")
+        try:
+            produce_lks(t,lc)
+        except:
+            print(f"TIC{t} lk plot failed.")
+        try:
+            produce_fts(t,lc)
+        except:
+            print(f"TIC{t} ft plot failed.")
+        try:
+            produce_scaled_fts(t,lc)
+        except:
+            print(f"TIC{t} scaled ft plot failed.")
+        try:
+            produce_folded_lks(t,lc)
+        except:
+            print(f"TIC{t} folded lk plot failed.")
 
