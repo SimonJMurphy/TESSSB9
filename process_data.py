@@ -17,20 +17,20 @@ names = ["SysNum", "OrbNum", "Porb", "Porb_err", "tp", "tp_err", "tp_flag", "ecc
 orbits = pd.read_csv(f"{github}/data/SB9public/Orbits.dta",names=names, delimiter="|")
 
 # Read Kareem's SB9+TESS cross-match
-df = pd.read_csv(f"{github}/data/sb9_x_gaia_with_tess_sectors.csv")
+df = pd.read_csv(f"{github}/data/sb9_x_gaia_with_tess_all_sectors.csv")
 
 # find orbits with fewest null values. 
 ### Should probably replace with the orbit with most measured RVs. ###
 xorbs = orbits.loc[orbits.notnull().sum(1).groupby(orbits.SysNum).idxmax()]
 
 # merge our TIC-matched df with the good orbits (kind of weird, but we don't want duplicates)
-xdf = df.merge(xorbs,left_on="sb9_id",right_on='SysNum')
+xdf = df.merge(xorbs,left_on="SB9_id",right_on='SysNum')
 
 
 # Loop over files and find unique TICS. This requires connection to silo2 server
 print("Gathering information on TESS lightcurves from the SILO server...")
 files = []
-for sector in list(range(1, 20)):
+for sector in list(range(1, 22)):
     files.extend(
         glob.glob("/Volumes/silo2/dhey3294/TESS/sector_" + str(sector) + "/tess*.fits")
     )
@@ -54,7 +54,7 @@ print("Cross-matching and producing dataframe...")
 tf = xdf[xdf["TIC"].isin(unique_tics)]
 
 # We mostly want to use log p, and we also want abs mag and the number of RVs
-tf["logp"] = np.log10(tf["p"])
+tf["logp"] = np.log10(tf["P"])
 tf['absmag'] = tf['phot_g_mean_mag'].values - 5 * np.log10(1/(tf['parallax'].values)*1000) + 5
 numRVs = []
 for rv1,rv2 in zip(tf['numRV1'].values,tf['numRV2'].values):
@@ -121,7 +121,7 @@ def produce_lks(ticnum,lc):
 
 def produce_folded_lks(ticnum,lc):
     print(f"making data/TESS_plots/folded_LKs/{ticnum}.png")
-    p = tf.query(f"TIC=={ticnum}")["p"].values[0]
+    p = tf.query(f"TIC=={ticnum}")["P"].values[0]
     fig = lc.fold(period=p).plot()
     plt.savefig(f"data/TESS_plots/folded_LKs/{ticnum}.png",bbox_inches='tight')
     plt.clf()
@@ -129,7 +129,7 @@ def produce_folded_lks(ticnum,lc):
 
 def produce_fts(ticnum,lc):
     print(f"making data/TESS_plots/FTs/{ticnum}.png")
-    p = tf.query(f"TIC=={ticnum}")["p"].values[0]
+    p = tf.query(f"TIC=={ticnum}")["P"].values[0]
     fmax = 15
     fig = lc.to_periodogram(maximum_frequency=fmax).plot()
     if 1/p < fmax:
@@ -142,7 +142,7 @@ def produce_fts(ticnum,lc):
 
 def produce_scaled_fts(ticnum,lc):
     print(f"making data/TESS_plots/scaled_FTs/{ticnum}.png")
-    p = tf.query(f"TIC=={ticnum}")["p"].values[0]
+    p = tf.query(f"TIC=={ticnum}")["P"].values[0]
     if p < 10:
         fmax = 8/p
     else:
